@@ -1,1 +1,666 @@
 
+<html><head><base href="https://websim.cryptoetoe.com/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toefu The Cryp-toe Ninja</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary-red: #800000;
+    --secondary-red: #600000;
+    --highlight-red: #A00000;
+  }
+  @font-face {
+    font-family: 'RetroGaming';
+    src: url('https://fonts.cdnfonts.com/s/39623/PressStart2P-Regular.woff') format('woff');
+  }
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Press Start 2P', cursive;
+    background-color: #000000;
+    color: #E6E6E6;
+  }
+  #game-container {
+    background: none;
+    position: relative;
+    overflow: hidden;
+  }
+  #game-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(to bottom, #000000 0%, #600000 100%),
+      linear-gradient(to right, var(--highlight-red), #600000);
+    background-blend-mode: overlay;
+    z-index: -2;
+  }
+  #city-skyline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background-image: 
+      linear-gradient(to top, #000000 0%, transparent 100%),
+      repeating-linear-gradient(
+        to right,
+        #600000 0px,
+        #600000 20px,
+        var(--highlight-red) 20px,
+        var(--highlight-red) 40px
+      );
+    z-index: -1;
+  }
+  #game-canvas {
+    width: 100%;
+    height: 100%;
+  }
+  .overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    border: 4px solid var(--highlight-red);
+    box-shadow: 0 0 20px var(--highlight-red), 0 0 40px #600000, inset 0 0 10px var(--highlight-red);
+  }
+  .menu-item {
+    margin: 15px 0;
+    padding: 12px;
+    background-color: var(--primary-red);
+    color: #FFFFFF;
+    border: 2px solid var(--secondary-red);
+    border-radius: 5px;
+    text-shadow: 2px 2px 4px #000000;
+    font-size: 18px;
+    transition: all 0.3s;
+  }
+  .menu-item:hover {
+    background-color: var(--secondary-red);
+    color: #FFFFFF;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px var(--highlight-red);
+  }
+  #menu h1 {
+    font-size: 36px;
+    text-shadow: 3px 3px 6px var(--highlight-red);
+    margin-bottom: 20px;
+  }
+  #menu h2 {
+    font-size: 24px;
+    text-shadow: 2px 2px 4px var(--highlight-red);
+    margin-bottom: 30px;
+  }
+  #hud {
+    display: flex;
+    justify-content: space-around;
+    width: 300px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid var(--highlight-red);
+  }
+  .hud-item {
+    text-shadow: 0 0 5px var(--highlight-red);
+  }
+  #combo {
+    font-size: 1.2em;
+    color: #FF4136;
+  }
+  #pause-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    background-color: var(--primary-red);
+    color: #FFFFFF;
+    border: 2px solid var(--secondary-red);
+    transition: all 0.3s;
+    padding: 10px;
+    cursor: pointer;
+  }
+  #pause-btn:hover {
+    background-color: var(--secondary-red);
+    color: #FFFFFF;
+  }
+  #fullscreen-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 18px;
+    background-color: var(--primary-red);
+    color: #FFFFFF;
+    border: 2px solid var(--secondary-red);
+    transition: all 0.3s;
+    padding: 10px;
+    cursor: pointer;
+  }
+  #fullscreen-btn:hover {
+    background-color: var(--secondary-red);
+    color: #FFFFFF;
+  }
+  .hidden {
+    display: none;
+  }
+  #lore {
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  #audio-controls {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #volume-slider, #volume-slider-pause {
+    width: 100px;
+    margin-right: 10px;
+  }
+  #mute-btn, #mute-btn-pause {
+    background-color: var(--primary-red);
+    color: #FFFFFF;
+    border: 2px solid var(--secondary-red);
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  #mute-btn:hover, #mute-btn-pause:hover {
+    background-color: var(--secondary-red);
+    color: #FFFFFF;
+  }
+  .particle {
+    position: absolute;
+    background-color: var(--highlight-red);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .slice-particle {
+    position: absolute;
+    background-color: var(--highlight-red);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: all 0.5s ease-out;
+  }
+  @keyframes float {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-100vh) rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <div id="city-skyline"></div>
+  <canvas id="game-canvas"></canvas>
+  <div id="menu" class="overlay">
+    <h1>Toefu The Cryp-toe Ninja</h1>
+    <h2>The Legend of Toefu</h2>
+    <div class="menu-item" id="start-game">Start Game</div>
+    <div class="menu-item" id="show-lore">Show Lore</div>
+    <div class="menu-item" id="fullscreen-btn">Full Screen</div>
+    <div class="menu-item" id="exit-game">Exit Game</div>
+    <div id="audio-controls">
+      <input type="range" id="volume-slider" min="0" max="100" value="50">
+      <button id="mute-btn">Mute</button>
+    </div>
+  </div>
+  <audio id="soundtrack" loop>
+    <source src="https://cdn1.suno.ai/fc8560e8-d000-42e3-aeda-7626e51e1454.mp3" type="audio/mpeg">
+  </audio>
+  <div id="lore" class="overlay hidden">
+    <h2>The Legend of Toefu</h2>
+    <p>In the annals of the Ming Dynasty, there lived a legendary warrior known as Toefu. His skills with the katana were unmatched, his spirit unyielding. As fate would have it, Toefu's life was cut short in the 1500s, but his legacy refused to fade.</p>
+    <p>Centuries later, in a world where digital and physical realms intertwine, Toefu's spirit found new purpose. Alongside the enigmatic Satoeshi Nakamotoe, Toefu became a central figure in the lore of the Cryptoe Universe.</p>
+    <p>Now, as cryptocurrencies threaten to overrun the digital landscape, Toefu has been called upon once more. With his trusty katana, he must slice through the chaos, restoring balance to the Cryptoe Universe.</p>
+    <p>You are Toefu reborn. Your mission: to master the art of crypto-slicing and safeguard the future of digital currency. Are you ready to become a legend?</p>
+    <div class="menu-item" id="back-to-menu">Back to Menu</div>
+  </div>
+  <div id="hud" class="hidden">
+    <div class="hud-item">Score: <span id="score">0</span></div>
+    <div class="hud-item">Time: <span id="time">60</span></div>
+    <div class="hud-item">Combo: <span id="combo">0</span>x</div>
+  </div>
+  <button id="pause-btn" class="hidden">| |</button>
+  <div id="pause-menu" class="overlay hidden">
+    <h2>Game Paused</h2>
+    <div class="menu-item" id="resume-game">Resume</div>
+    <div class="menu-item" id="restart-game">Restart</div>
+    <div class="menu-item" id="quit-to-menu">Quit to Menu</div>
+    <div id="audio-controls">
+      <input type="range" id="volume-slider-pause" min="0" max="100" value="50">
+      <button id="mute-btn-pause">Mute</button>
+    </div>
+  </div>
+  <div id="game-over" class="overlay hidden">
+    <h2>Game Over</h2>
+    <p>Your Score: <span id="final-score"></span></p>
+    <div class="menu-item" id="play-again">Play Again</div>
+    <div class="menu-item" id="back-to-menu">Back to Menu</div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  let gameLoop, spawnLoop, timerLoop;
+  let activeLogos = [];
+  let slices = [];
+  let score = 0;
+  let timeLeft = 60;
+  let gameActive = false;
+  let gamePaused = false;
+  let comboCounter = 0;
+  let lastComboTime = 0;
+  const comboTimeout = 1000;
+
+  const player = {
+    x: 0,
+    y: 0,
+    width: 96,
+    height: 96,
+    targetX: 0,
+    direction: 'right',
+    state: 'neutral',
+    isJumping: false,
+    jumpY: 0,
+    jumpTarget: { x: 0, y: 0 },
+    animationStart: 0,
+    isFlipping: false,
+    flipProgress: 0,
+    flipDirection: 1,
+  };
+  
+  const cryptoLogos = [
+    'https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=025',
+    'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=025',
+    'https://cryptologos.cc/logos/cardano-ada-logo.png?v=025',
+    'https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=025'
+  ];
+
+  function createCryptoLogo() {
+    return cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)];
+  }
+
+  function spawnCryptoLogo() {
+    const logo = {
+      x: Math.random() * canvas.width,
+      y: -32,
+      speedX: (Math.random() - 0.5) * 3,
+      speedY: 2 + Math.random() * 3,
+      rotation: Math.random() * Math.PI * 2,
+      image: new Image(),
+      width: 64,
+      height: 64
+    };
+    logo.image.src = createCryptoLogo();
+    activeLogos.push(logo);
+  }
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    player.x = canvas.width / 2 - player.width / 2;
+    player.y = canvas.height - player.height - 20;
+    player.targetX = player.x;
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  const soundtrack = document.getElementById('soundtrack');
+  const volumeSlider = document.getElementById('volume-slider');
+  const muteBtn = document.getElementById('mute-btn');
+  const volumeSliderPause = document.getElementById('volume-slider-pause');
+  const muteBtnPause = document.getElementById('mute-btn-pause');
+
+  function updateVolume() {
+    const volume = volumeSlider.value / 100;
+    soundtrack.volume = volume;
+    volumeSliderPause.value = volumeSlider.value;
+  }
+
+  function toggleMute() {
+    soundtrack.muted = !soundtrack.muted;
+    muteBtn.textContent = soundtrack.muted ? 'Unmute' : 'Mute';
+    muteBtnPause.textContent = soundtrack.muted ? 'Unmute' : 'Mute';
+  }
+
+  volumeSlider.addEventListener('change', updateVolume);
+  muteBtn.addEventListener('click', toggleMute);
+  volumeSliderPause.addEventListener('change', updateVolume);
+  muteBtnPause.addEventListener('click', toggleMute);
+
+  function syncVolumeSliders() {
+    volumeSliderPause.value = volumeSlider.value;
+    updateVolume();
+  }
+
+  function startGame() {
+    gameActive = true;
+    gamePaused = false;
+    score = 0;
+    timeLeft = 60;
+    comboCounter = 0;
+    activeLogos = [];
+    slices = [];
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('pause-btn').classList.remove('hidden');
+    gameLoop = setInterval(update, 1000 / 48);
+    spawnLoop = setInterval(spawnCryptoLogo, 1000);
+    timerLoop = setInterval(updateTimer, 1000);
+    
+    soundtrack.play();
+    
+    syncVolumeSliders();
+
+    setInterval(createParticle, 1000);
+  }
+
+  function update() {
+    if (gamePaused) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    updatePlayerPosition();
+    updateJumpAnimation();
+    updatePlayerAnimation();
+    updateLogos();
+    drawLogos();
+    drawPlayer();
+    updateHUD();
+  }
+
+  function updatePlayerPosition() {
+    const moveSpeed = 8;
+    if (player.x < player.targetX) {
+      player.x = Math.min(player.x + moveSpeed, player.targetX);
+    } else if (player.x > player.targetX) {
+      player.x = Math.max(player.x - moveSpeed, player.targetX);
+    }
+  }
+
+  function updatePlayerAnimation() {
+    if (player.isFlipping) {
+      player.flipProgress += 0.1;
+      if (player.flipProgress >= 1) {
+        player.isFlipping = false;
+        player.flipProgress = 0;
+      }
+    }
+  }
+
+  function drawPlayer() {
+    ctx.save();
+    ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - player.jumpY);
+    
+    if (player.isFlipping) {
+      const flipScale = Math.sin(player.flipProgress * Math.PI);
+      ctx.scale(1 - Math.abs(flipScale), 1);
+    }
+
+    let playerImage = new Image();
+    if (player.state === 'neutral') {
+      playerImage.src = '/a/d65f8c27-3369-48dd-99d4-32adc9bb43f0';
+    } else if (player.state === 'attackLeft') {
+      playerImage.src = '/a/f59a1ef1-a809-439c-98a6-66bf2100f0e3';
+    } else if (player.state === 'attackRight') {
+      playerImage.src = '/a/a393c62c-7619-4b1b-93b1-72d95ea12acb';
+    }
+
+    const aspectRatio = playerImage.width / playerImage.height;
+    const drawWidth = player.state === 'neutral' ? player.width : player.width * 1.5;
+    const drawHeight = drawWidth / aspectRatio;
+
+    ctx.drawImage(playerImage, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    ctx.restore();
+  }
+
+  function slash(x, y) {
+    player.direction = x < player.x + player.width / 2 ? 'left' : 'right';
+    player.state = player.direction === 'left' ? 'attackLeft' : 'attackRight';
+    player.isJumping = true;
+    player.jumpTarget = { x: x - player.width / 2, y: y - player.height / 2 };
+    player.animationStart = Date.now();
+    player.isFlipping = true;
+    player.flipProgress = 0;
+
+    let hit = false;
+    activeLogos.forEach((logo, index) => {
+      if (x >= logo.x && x <= logo.x + logo.width &&
+          y >= logo.y && y <= logo.y + logo.height) {
+        hit = true;
+        const now = Date.now();
+        if (now - lastComboTime < comboTimeout) {
+          comboCounter++;
+        } else {
+          comboCounter = 1;
+        }
+        lastComboTime = now;
+        score += comboCounter;
+        activeLogos.splice(index, 1);
+        createSliceEffect(x, y);
+      }
+    });
+
+    if (!hit) {
+      comboCounter = 0;
+    }
+  }
+
+  function updateJumpAnimation() {
+    if (!player.isJumping) return;
+
+    const jumpDuration = 600;
+    const jumpHeight = 150;
+    const elapsedTime = Date.now() - player.animationStart;
+    const progress = Math.min(elapsedTime / jumpDuration, 1);
+
+    if (progress < 1) {
+      player.jumpY = jumpHeight * Math.sin(progress * Math.PI);
+      const jumpX = player.x + (player.jumpTarget.x - player.x) * progress;
+      player.y = player.jumpTarget.y + (player.y - player.jumpTarget.y) * (1 - progress);
+      player.x = jumpX;
+    } else {
+      player.isJumping = false;
+      player.jumpY = 0;
+      player.state = 'neutral';
+      player.x = player.jumpTarget.x;
+      player.y = player.jumpTarget.y;
+    }
+  }
+
+  function drawLogos() {
+    activeLogos.forEach(logo => {
+      ctx.save();
+      ctx.translate(logo.x + logo.width / 2, logo.y + logo.height / 2);
+      ctx.rotate(logo.rotation);
+      ctx.drawImage(logo.image, -logo.width / 2, -logo.height / 2, logo.width, logo.height);
+      ctx.restore();
+    });
+  }
+
+  function updateLogos() {
+    for (let i = activeLogos.length - 1; i >= 0; i--) {
+      const logo = activeLogos[i];
+      logo.x += logo.speedX * 0.8;
+      logo.y += logo.speedY * 0.8;
+      logo.rotation += 0.08;
+      
+      if (logo.y > canvas.height) {
+        activeLogos.splice(i, 1);
+      }
+    }
+  }
+
+  function updateHUD() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('time').textContent = timeLeft;
+    document.getElementById('combo').textContent = comboCounter;
+  }
+
+  function updateTimer() {
+    if (gamePaused) return;
+    timeLeft--;
+    if (timeLeft <= 0) {
+      endGame();
+    }
+  }
+
+  function endGame() {
+    gameActive = false;
+    clearInterval(gameLoop);
+    clearInterval(spawnLoop);
+    clearInterval(timerLoop);
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('pause-btn').classList.add('hidden');
+    document.getElementById('game-over').classList.remove('hidden');
+    document.getElementById('final-score').textContent = score;
+    
+    soundtrack.pause();
+  }
+
+  function pauseGame() {
+    if (!gameActive) return;
+    gamePaused = !gamePaused;
+    if (gamePaused) {
+      document.getElementById('pause-menu').classList.remove('hidden');
+      syncVolumeSliders();
+    } else {
+      document.getElementById('pause-menu').classList.add('hidden');
+    }
+  }
+
+  function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.width = `${Math.random() * 5 + 1}px`;
+    particle.style.height = particle.style.width;
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.top = `${Math.random() * 100}%`;
+    particle.style.opacity = Math.random();
+    particle.style.animation = `float ${Math.random() * 10 + 5}s linear infinite`;
+    document.getElementById('game-container').appendChild(particle);
+    
+    setTimeout(() => {
+      particle.remove();
+    }, 15000);
+  }
+
+  function createSliceEffect(x, y) {
+    const sliceParticles = 10;
+    for (let i = 0; i < sliceParticles; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle slice-particle';
+      particle.style.width = `${Math.random() * 3 + 2}px`;
+      particle.style.height = particle.style.width;
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+      particle.style.backgroundColor = '#A00000';
+      particle.style.transform = `translate(${(Math.random() - 0.5) * 50}px, ${(Math.random() - 0.5) * 50}px)`;
+      particle.style.opacity = 1;
+      document.getElementById('game-container').appendChild(particle);
+      
+      setTimeout(() => {
+        particle.style.opacity = 0;
+        particle.style.transform += ` scale(0)`;
+      }, 50);
+
+      setTimeout(() => {
+        particle.remove();
+      }, 550);
+    }
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!gameActive || gamePaused) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    movePlayer(x);
+  });
+
+  canvas.addEventListener('click', (e) => {
+    if (!gameActive || gamePaused) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    slash(x, y);
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!gameActive || gamePaused) return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.touches[0].clientX - rect.left;
+    movePlayer(x);
+  });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (!gameActive || gamePaused) return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.changedTouches[0].clientX - rect.left;
+    const y = e.changedTouches[0].clientY - rect.top;
+    slash(x, y);
+  });
+
+  function movePlayer(x) {
+    player.targetX = x - player.width / 2;
+    player.targetX = Math.max(0, Math.min(canvas.width - player.width, player.targetX));
+    player.direction = x < canvas.width / 2 ? 'left' : 'right';
+  }
+
+  document.getElementById('start-game').addEventListener('click', startGame);
+  document.getElementById('show-lore').addEventListener('click', () => {
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('lore').classList.remove('hidden');
+  });
+  document.getElementById('back-to-menu').addEventListener('click', () => {
+    document.getElementById('lore').classList.add('hidden');
+    document.getElementById('game-over').classList.add('hidden');
+    document.getElementById('menu').classList.remove('hidden');
+  });
+  document.getElementById('play-again').addEventListener('click', startGame);
+  document.getElementById('pause-btn').addEventListener('click', pauseGame);
+  document.getElementById('resume-game').addEventListener('click', pauseGame);
+  document.getElementById('restart-game').addEventListener('click', () => {
+    pauseGame();
+    startGame();
+  });
+  document.getElementById('quit-to-menu').addEventListener('click', () => {
+    pauseGame();
+    document.getElementById('pause-menu').classList.add('hidden');
+    document.getElementById('menu').classList.remove('hidden');
+  });
+
+  document.getElementById('fullscreen-btn').addEventListener('click', toggleFullScreen);
+
+  function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
